@@ -8,12 +8,14 @@ CREATE TABLE users (
 );
 
 CREATE TABLE connections (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     friend_id BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, friend_id),
+
     CONSTRAINT fk_conn_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_conn_friend FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
+    CONSTRAINT fk_conn_friend FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT uq_conn_pair UNIQUE (user_id, friend_id)
 );
 
 CREATE TABLE bank_accounts (
@@ -22,6 +24,7 @@ CREATE TABLE bank_accounts (
     iban VARCHAR(34) NOT NULL,
     label VARCHAR(120),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     CONSTRAINT fk_bank_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT uq_user_iban UNIQUE (user_id, iban)
 );
