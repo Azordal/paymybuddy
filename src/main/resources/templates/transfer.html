@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pay My Buddy - Transfer</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+<div th:replace="fragments/header :: header"></div>
+
+<main class="transfer-page">
+
+    <section class="transfer-section">
+
+        <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/transfer}" method="post" th:object="${transferDto}" class="transfer-form">
+
+            <select th:field="*{receiverEmail}" class="transfer-select" required>
+                <option value="">Sélectionner une relation</option>
+                <option th:each="relation : ${relations}"
+                        th:value="${relation.friend.email}"
+                        th:text="${#strings.substringBefore(relation.friend.email, '@')}">
+                </option>
+            </select>
+
+            <input
+                    type="text"
+                    th:field="*{description}"
+                    placeholder="Description"
+                    class="transfer-description"
+                    required
+            >
+
+            <input
+                    type="number"
+                    th:field="*{amountCents}"
+                    placeholder="0€"
+                    class="transfer-amount"
+                    min="1"
+                    required
+            >
+
+            <button type="submit" class="transfer-button">
+                Payer
+            </button>
+
+        </form>
+
+        <div class="transactions-box">
+
+            <h2 class="transactions-title">Mes Transactions</h2>
+
+            <table class="transactions-table">
+                <thead>
+                <tr>
+                    <th>Relations</th>
+                    <th>Description</th>
+                    <th>Montant</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="transaction : ${transactions}">
+                    <td th:text="${transaction.receiver != null ? #strings.substringBefore(transaction.receiver.email, '@') : ''}">
+                        Relation
+                    </td>
+                    <td th:text="${transaction.description}">
+                        Description
+                    </td>
+                    <td th:text="${#numbers.formatDecimal(transaction.amountCents / 100.0, 1, 2)} + '€'">
+                        0€
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>

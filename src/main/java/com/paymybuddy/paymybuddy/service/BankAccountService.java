@@ -23,7 +23,6 @@ public class BankAccountService {
 
     /**
      * Ajoute un compte bancaire à un utilisateur.
-     *
      * Règles:
      * - userEmail existe
      * - iban non vide
@@ -134,7 +133,6 @@ public class BankAccountService {
     }
 
     private boolean looksLikeIban(String iban) {
-        // Validation "light" (prototype) :
         // - longueur 15 à 34
         // - commence par 2 lettres + 2 chiffres
         // - reste alphanum

@@ -112,7 +112,7 @@ public class TransactionService {
     }
 
     /**
-     * Historique envoyé (paginé).
+     * Historique envoyé.
      */
     @Transactional(readOnly = true)
     public Page<Transaction> historySent(String userEmail, Pageable pageable) {
@@ -125,7 +125,7 @@ public class TransactionService {
     }
 
     /**
-     * Historique reçu (paginé).
+     * Historique reçu.
      */
     @Transactional(readOnly = true)
     public Page<Transaction> historyReceived(String userEmail, Pageable pageable) {

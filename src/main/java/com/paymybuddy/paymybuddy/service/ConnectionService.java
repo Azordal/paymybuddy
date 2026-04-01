@@ -29,6 +29,7 @@ public class ConnectionService {
      * - On ne peut pas s'ajouter soi-même
      * - Pas de doublon (user_id + friend_id)
      */
+
     @Transactional
     public Connection addFriendByEmail(String userEmail, String friendEmail) {
         if (userEmail == null || friendEmail == null) {
@@ -66,6 +67,7 @@ public class ConnectionService {
     /**
      * Liste toutes les connexions (amis) d'un utilisateur.
      */
+
     @Transactional(readOnly = true)
     public List<Connection> listFriends(String userEmail) {
         if (userEmail == null) {
@@ -84,8 +86,9 @@ public class ConnectionService {
     }
 
     /**
-     * Vérifie si userEmail est connecté à friendEmail (utile pour valider un transfert).
+     * Vérifie si userEmail est connecté à friendEmail.
      */
+
     @Transactional(readOnly = true)
     public boolean isFriend(String userEmail, String friendEmail) {
         if (userEmail == null || friendEmail == null) {
@@ -110,8 +113,8 @@ public class ConnectionService {
 
     /**
      * Supprime une connexion user -> friend.
-     * (On te la met maintenant car souvent demandée ensuite.)
      */
+
     @Transactional
     public void removeFriendByEmail(String userEmail, String friendEmail) {
         if (userEmail == null || friendEmail == null) {

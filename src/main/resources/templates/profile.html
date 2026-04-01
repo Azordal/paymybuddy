@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Pay My Buddy - Profil</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+<div th:replace="fragments/header :: header"></div>
+
+<main class="profile-page">
+
+  <section class="profile-layout">
+
+    <div class="profile-info">
+
+      <div class="profile-line">
+        <span class="profile-label">Username</span>
+        <span class="profile-value"
+              th:text="${#strings.substringBefore(user.email, '@')}">
+                    username
+                </span>
+        <span class="profile-arrow">›</span>
+      </div>
+
+      <div class="profile-line">
+        <span class="profile-label">Mail</span>
+        <span class="profile-value" th:text="${user.email}">
+                    nom@domain.com
+                </span>
+        <span class="profile-arrow">›</span>
+      </div>
+
+      <div class="profile-line">
+        <span class="profile-label">Mot de passe</span>
+        <span class="profile-value">mot de passe</span>
+        <span class="profile-arrow">›</span>
+      </div>
+
+    </div>
+
+    <div class="profile-button-wrapper">
+      <button type="button" class="profile-edit-button">
+        Modifier
+      </button>
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+</html>

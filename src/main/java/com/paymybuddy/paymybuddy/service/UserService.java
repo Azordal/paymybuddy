@@ -18,14 +18,6 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Inscription d'un nouvel utilisateur.
-     * Règles:
-     * - email non nul, non vide
-     * - password non nul, non vide
-     * - email unique
-     * - on stocke un hash (jamais le mot de passe en clair)
-     */
     @Transactional
     public User register(String email, String rawPassword) {
         if (email == null || rawPassword == null) {
@@ -33,9 +25,11 @@ public class UserService {
         }
 
         String normalizedEmail = email.trim().toLowerCase();
+
         if (normalizedEmail.isEmpty()) {
             throw new IllegalArgumentException("Email must not be empty");
         }
+
         if (rawPassword.trim().isEmpty()) {
             throw new IllegalArgumentException("Password must not be empty");
         }
@@ -46,20 +40,12 @@ public class UserService {
 
         User user = new User();
         user.setEmail(normalizedEmail);
-
-        // IMPORTANT: on enregistre un hash BCrypt, pas le mot de passe brut
         user.setPasswordHash(passwordEncoder.encode(rawPassword));
-
-        // solde par défaut
         user.setBalanceCents(0L);
 
         return userRepository.save(user);
     }
 
-    /**
-     * Récupération d'un utilisateur par email.
-     * Utile pour login, ajout d'ami, etc.
-     */
     @Transactional(readOnly = true)
     public User getByEmail(String email) {
         if (email == null) {
@@ -67,13 +53,11 @@ public class UserService {
         }
 
         String normalizedEmail = email.trim().toLowerCase();
+
         return userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + normalizedEmail));
     }
 
-    /**
-     * Récupération d'un utilisateur par id.
-     */
     @Transactional(readOnly = true)
     public User getById(Long id) {
         if (id == null) {
@@ -84,9 +68,6 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
     }
 
-    /**
-     * Vérifie un mot de passe (utile pour debug / tests / login sans Spring Security au début).
-     */
     @Transactional(readOnly = true)
     public boolean checkPassword(String email, String rawPassword) {
         User user = getByEmail(email);
