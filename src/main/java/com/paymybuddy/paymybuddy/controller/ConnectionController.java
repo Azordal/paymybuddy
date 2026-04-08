@@ -16,38 +16,72 @@ import java.util.List;
 @Controller
 public class ConnectionController {
 
+    // Service qui gère les relations entre utilisateurs
     private final ConnectionService connectionService;
 
+    // Injection du service dans le contrôleur
     public ConnectionController(ConnectionService connectionService) {
         this.connectionService = connectionService;
     }
 
+    /**
+     * Affiche la page d'ajout de relation.
+     * On prépare :
+     * - le formulaire
+     * - la liste actuelle des amis
+     */
     @GetMapping("/relations/add")
     public String showAddRelationPage(Model model, Authentication authentication) {
+
+        // Email de l'utilisateur connecté
         String userEmail = authentication.getName();
 
+        // Ajoute un formulaire vide si nécessaire
         if (!model.containsAttribute("relationDto")) {
             model.addAttribute("relationDto", new AddRelationForm());
         }
 
+        // Récupère la liste des amis
         List<Connection> friends = connectionService.listFriends(userEmail);
         model.addAttribute("friends", friends);
 
         return "add-relation";
     }
 
+    /**
+     * Traite l'ajout d'une nouvelle relation.
+     */
     @PostMapping("/relations/add")
     public String addRelation(@ModelAttribute("relationDto") AddRelationForm form,
                               Authentication authentication,
                               RedirectAttributes redirectAttributes) {
+
+        // Email de l'utilisateur connecté
         String userEmail = authentication.getName();
 
         try {
+            // Appelle le service pour créer la relation
             connectionService.addFriendByEmail(userEmail, form.getEmail());
-            redirectAttributes.addFlashAttribute("successMessage", "Relation ajoutée avec succès.");
+
+            // Message de succès
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Relation ajoutée avec succès."
+            );
+
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            redirectAttributes.addFlashAttribute("relationDto", form);
+
+            // Message d'erreur
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    e.getMessage()
+            );
+
+            // Conserve les données du formulaire
+            redirectAttributes.addFlashAttribute(
+                    "relationDto",
+                    form
+            );
         }
 
         return "redirect:/relations/add";

@@ -22,7 +22,11 @@
         <a th:href="@{/relations/add}" class="nav-link">Ajouter relation</a>
       </li>
       <li>
-        <a th:href="@{/logout}" class="nav-link">Se déconnecter</a>
+        <form th:action="@{/logout}" method="post" class="logout-form">
+          <button type="submit" class="nav-link logout-button">
+            Se déconnecter
+          </button>
+        </form>
       </li>
     </ul>
 

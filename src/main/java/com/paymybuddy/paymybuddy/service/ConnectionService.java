@@ -12,9 +12,13 @@ import java.util.List;
 @Service
 public class ConnectionService {
 
+    // Repository pour accéder aux utilisateurs
     private final UserRepository userRepository;
+
+    // Repository pour accéder aux connexions
     private final ConnectionRepository connectionRepository;
 
+    // Injection des repositories
     public ConnectionService(UserRepository userRepository,
                              ConnectionRepository connectionRepository) {
         this.userRepository = userRepository;
@@ -22,14 +26,8 @@ public class ConnectionService {
     }
 
     /**
-     * Ajoute une connexion (ami) pour un utilisateur à partir d'un email.
-     *
-     * Règles :
-     * - Les deux emails doivent exister en base
-     * - On ne peut pas s'ajouter soi-même
-     * - Pas de doublon (user_id + friend_id)
+     * Ajoute un ami à partir de son email.
      */
-
     @Transactional
     public Connection addFriendByEmail(String userEmail, String friendEmail) {
         if (userEmail == null || friendEmail == null) {
@@ -53,6 +51,7 @@ public class ConnectionService {
         User friend = userRepository.findByEmail(f)
                 .orElseThrow(() -> new IllegalArgumentException("Friend not found: " + f));
 
+        // Vérifie si la connexion existe déjà
         if (connectionRepository.existsByUser_IdAndFriend_Id(user.getId(), friend.getId())) {
             return connectionRepository.findByUser_Id(user.getId()).stream()
                     .filter(c -> c.getFriend().getId().equals(friend.getId()))
@@ -65,9 +64,8 @@ public class ConnectionService {
     }
 
     /**
-     * Liste toutes les connexions (amis) d'un utilisateur.
+     * Liste les amis d'un utilisateur.
      */
-
     @Transactional(readOnly = true)
     public List<Connection> listFriends(String userEmail) {
         if (userEmail == null) {
@@ -86,9 +84,8 @@ public class ConnectionService {
     }
 
     /**
-     * Vérifie si userEmail est connecté à friendEmail.
+     * Vérifie si deux utilisateurs sont amis.
      */
-
     @Transactional(readOnly = true)
     public boolean isFriend(String userEmail, String friendEmail) {
         if (userEmail == null || friendEmail == null) {
@@ -112,9 +109,8 @@ public class ConnectionService {
     }
 
     /**
-     * Supprime une connexion user -> friend.
+     * Supprime un ami.
      */
-
     @Transactional
     public void removeFriendByEmail(String userEmail, String friendEmail) {
         if (userEmail == null || friendEmail == null) {

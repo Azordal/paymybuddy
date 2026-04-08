@@ -15,12 +15,17 @@ import java.util.List;
 @Service
 public class TransactionService {
 
-    // 0.5% = 5 / 1000
+    // Calculer les frais de 0,5 %
     private static final long FEE_NUMERATOR = 5;
     private static final long FEE_DENOMINATOR = 1000;
 
+    // Repository pour accéder aux utilisateurs
     private final UserRepository userRepository;
+
+    // Repository pour vérifier les connexions entre utilisateurs
     private final ConnectionRepository connectionRepository;
+
+    // Repository pour enregistrer et lire les transactions
     private final TransactionRepository transactionRepository;
 
     public TransactionService(UserRepository userRepository,
@@ -32,20 +37,7 @@ public class TransactionService {
     }
 
     /**
-     * Transfert interne entre deux utilisateurs (amis).
-     *
-     * Règles :
-     * - emails non nuls / non vides
-     * - amountCents > 0
-     * - sender != receiver
-     * - receiver doit être dans les connections du sender
-     * - solde sender >= amount + fee
-     * - fee = 0.5% (arrondi inférieur)
-     *
-     * Effets :
-     * - update solde sender et receiver
-     * - insert en table transactions
-     * - rollback complet si une erreur survient
+     * Effectue un transfert d'argent entre deux utilisateurs.
      */
     @Transactional
     public Transaction sendMoney(String senderEmail,
@@ -68,7 +60,7 @@ public class TransactionService {
         User receiver = userRepository.findByEmail(r)
                 .orElseThrow(() -> new IllegalArgumentException("Receiver not found: " + r));
 
-        // Vérifie qu'ils sont connectés (amis)
+        // Vérifie que les deux utilisateurs sont bien connectés
         if (!connectionRepository.existsByUser_IdAndFriend_Id(sender.getId(), receiver.getId())) {
             throw new IllegalArgumentException("Receiver is not in sender's connections");
         }
@@ -81,24 +73,24 @@ public class TransactionService {
             throw new IllegalArgumentException("Insufficient balance");
         }
 
-        // Mise à jour soldes
+        // Mise à jour du solde de l'expéditeur
         sender.setBalanceCents(senderBalance - totalDebit);
 
+        // Mise à jour du solde du destinataire
         long receiverBalance = safeCents(receiver.getBalanceCents());
         receiver.setBalanceCents(receiverBalance + amountCents);
 
-        // Persist soldes
+        // Sauvegarde des nouveaux soldes
         userRepository.save(sender);
         userRepository.save(receiver);
 
-        // Persist transaction
+        // Création et sauvegarde de la transaction
         Transaction tx = Transaction.internal(sender, receiver, amountCents, feeCents, description);
         return transactionRepository.save(tx);
     }
 
     /**
-     * Historique complet (envoyé OU reçu) en List (simple).
-     * Utile pour prototype.
+     * Retourne tout l'historique des transactions d'un utilisateur.
      */
     @Transactional(readOnly = true)
     public List<Transaction> historyForUser(String userEmail) {
@@ -112,7 +104,7 @@ public class TransactionService {
     }
 
     /**
-     * Historique envoyé.
+     * Retourne l'historique des transactions envoyées.
      */
     @Transactional(readOnly = true)
     public Page<Transaction> historySent(String userEmail, Pageable pageable) {
@@ -125,7 +117,7 @@ public class TransactionService {
     }
 
     /**
-     * Historique reçu.
+     * Retourne l'historique des transactions reçues.
      */
     @Transactional(readOnly = true)
     public Page<Transaction> historyReceived(String userEmail, Pageable pageable) {
@@ -137,7 +129,7 @@ public class TransactionService {
         return transactionRepository.findByReceiver_IdOrderByCreatedAtDesc(user.getId(), pageable);
     }
 
-
+    // Normalise et vérifie l'email
     private String normalizeEmail(String email, String nullMessage) {
         if (email == null) {
             throw new IllegalArgumentException(nullMessage);
@@ -149,11 +141,12 @@ public class TransactionService {
         return normalized;
     }
 
+    // Calcule les frais à 0,5 %
     private long computeFee(long amountCents) {
-        // 0.5% = 5/1000, arrondi inférieur en centimes
         return (amountCents * FEE_NUMERATOR) / FEE_DENOMINATOR;
     }
 
+    // Retourne 0 si la valeur est nulle
     private long safeCents(Long value) {
         return value == null ? 0L : value;
     }

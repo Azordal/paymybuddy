@@ -7,48 +7,57 @@ import java.time.Instant;
 @Table(name = "transactions")
 public class Transaction {
 
+    // Identifiant unique de la transaction
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // INTERNAL / TOPUP / WITHDRAW
+    // Type de transaction : INTERNAL / TOPUP / WITHDRAW
     @Column(nullable = false, length = 20)
     private String type;
 
+    // Utilisateur qui envoie l'argent
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_user_id")
     private User sender;
 
+    // Utilisateur qui reçoit l'argent
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_user_id")
     private User receiver;
 
+    // Compte bancaire utilisé pour dépôt ou retrait
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_account_id")
     private BankAccount bankAccount;
 
+    // Montant de la transaction en centimes
     @Column(name = "amount_cents", nullable = false)
     private Long amountCents;
 
+    // Frais de transaction en centimes
     @Column(name = "fee_cents", nullable = false)
     private Long feeCents = 0L;
 
+    // Description de la transaction
     @Column(length = 255)
     private String description;
 
+    // Date de création de la transaction
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    // Définit automatiquement la date lors de la création
     @PrePersist
     void onCreate() {
         this.createdAt = Instant.now();
         if (this.feeCents == null) this.feeCents = 0L;
     }
 
-    // Constructors
+    // Constructeur vide requis par JPA
     public Transaction() {}
 
-    // Internal transfer
+    // Méthode pour créer un transfert entre utilisateurs
     public static Transaction internal(User sender, User receiver, long amountCents, long feeCents, String description) {
         Transaction tx = new Transaction();
         tx.type = "INTERNAL";
@@ -60,7 +69,7 @@ public class Transaction {
         return tx;
     }
 
-    // Top up from bank
+    // Méthode pour un dépôt depuis un compte bancaire
     public static Transaction topup(User receiver, BankAccount bankAccount, long amountCents, String description) {
         Transaction tx = new Transaction();
         tx.type = "TOPUP";
@@ -72,7 +81,7 @@ public class Transaction {
         return tx;
     }
 
-    // Withdraw to bank
+    // Méthode pour un retrait vers un compte bancaire
     public static Transaction withdraw(User sender, BankAccount bankAccount, long amountCents, String description) {
         Transaction tx = new Transaction();
         tx.type = "WITHDRAW";

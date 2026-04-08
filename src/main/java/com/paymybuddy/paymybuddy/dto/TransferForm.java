@@ -3,7 +3,7 @@ package com.paymybuddy.paymybuddy.dto;
 public class TransferForm {
 
     private String receiverEmail;
-    private long amountCents;
+    private Double amount;
     private String description;
 
     public String getReceiverEmail() {
@@ -14,12 +14,12 @@ public class TransferForm {
         this.receiverEmail = receiverEmail;
     }
 
-    public long getAmountCents() {
-        return amountCents;
+    public Double getAmount() {
+        return amount;
     }
 
-    public void setAmountCents(long amountCents) {
-        this.amountCents = amountCents;
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 
     public String getDescription() {

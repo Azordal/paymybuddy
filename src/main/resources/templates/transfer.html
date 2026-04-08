@@ -38,10 +38,11 @@
 
             <input
                     type="number"
-                    th:field="*{amountCents}"
-                    placeholder="0€"
+                    step="0.01"
+                    min="0.01"
+                    th:field="*{amount}"
+                    placeholder="0.00"
                     class="transfer-amount"
-                    min="1"
                     required
             >
 
@@ -72,8 +73,8 @@
                     <td th:text="${transaction.description}">
                         Description
                     </td>
-                    <td th:text="${#numbers.formatDecimal(transaction.amountCents / 100.0, 1, 2)} + '€'">
-                        0€
+                    <td th:text="${#numbers.formatDecimal(transaction.amountCents / 100.0, 1, 2)} + ' €'">
+                        0.00 €
                     </td>
                 </tr>
                 </tbody>

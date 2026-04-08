@@ -12,9 +12,13 @@ import java.util.List;
 @Service
 public class BankAccountService {
 
+    // Repository pour accéder aux utilisateurs
     private final UserRepository userRepository;
+
+    // Repository pour accéder aux comptes bancaires
     private final BankAccountRepository bankAccountRepository;
 
+    // Injection des repositories dans le service
     public BankAccountService(UserRepository userRepository,
                               BankAccountRepository bankAccountRepository) {
         this.userRepository = userRepository;
@@ -23,12 +27,6 @@ public class BankAccountService {
 
     /**
      * Ajoute un compte bancaire à un utilisateur.
-     * Règles:
-     * - userEmail existe
-     * - iban non vide
-     * - iban normalisé (sans espaces, en majuscule)
-     * - unicité (user_id, iban)
-     * - label optionnel
      */
     @Transactional
     public BankAccount addBankAccount(String userEmail, String iban, String label) {
@@ -37,10 +35,12 @@ public class BankAccountService {
         if (iban == null) {
             throw new IllegalArgumentException("IBAN must not be null");
         }
+
         String normalizedIban = normalizeIban(iban);
         if (normalizedIban.isEmpty()) {
             throw new IllegalArgumentException("IBAN must not be empty");
         }
+
         if (!looksLikeIban(normalizedIban)) {
             throw new IllegalArgumentException("IBAN format looks invalid");
         }
@@ -48,16 +48,15 @@ public class BankAccountService {
         User user = userRepository.findByEmail(u)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + u));
 
-        // Evite doublons (user_id, iban)
+        // Vérifie si le compte existe déjà pour cet utilisateur
         if (bankAccountRepository.existsByUser_IdAndIban(user.getId(), normalizedIban)) {
-            // Choix UX: renvoyer l'existant plutôt que planter.
-            // (ou throw "Already exists")
             return bankAccountRepository.findByUser_Id(user.getId()).stream()
                     .filter(a -> a.getIban().equals(normalizedIban))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("Bank account exists but cannot be loaded"));
         }
 
+        // Création du nouveau compte bancaire
         BankAccount account = new BankAccount();
         account.setUser(user);
         account.setIban(normalizedIban);
@@ -80,8 +79,7 @@ public class BankAccountService {
     }
 
     /**
-     * Récupère un compte par id en s'assurant qu'il appartient au user.
-     * Utile pour TOPUP/WITHDRAW plus tard.
+     * Récupère un compte bancaire en vérifiant qu'il appartient à l'utilisateur.
      */
     @Transactional(readOnly = true)
     public BankAccount getOwnedByUser(String userEmail, Long bankAccountId) {
@@ -109,7 +107,7 @@ public class BankAccountService {
     }
 
     /**
-     * Supprime un compte bancaire (si appartient au user).
+     * Supprime un compte bancaire s'il appartient à l'utilisateur.
      */
     @Transactional
     public void deleteOwnedByUser(String userEmail, Long bankAccountId) {
@@ -117,6 +115,7 @@ public class BankAccountService {
         bankAccountRepository.delete(owned);
     }
 
+    // Normalise et vérifie l'email
     private String normalizeEmail(String email, String nullMessage) {
         if (email == null) {
             throw new IllegalArgumentException(nullMessage);
@@ -128,14 +127,13 @@ public class BankAccountService {
         return normalized;
     }
 
+    // Supprime les espaces et met l'IBAN en majuscule
     private String normalizeIban(String iban) {
         return iban.replaceAll("\\s+", "").toUpperCase();
     }
 
+    // Vérifie qu'un IBAN a une forme globalement valide
     private boolean looksLikeIban(String iban) {
-        // - longueur 15 à 34
-        // - commence par 2 lettres + 2 chiffres
-        // - reste alphanum
         int len = iban.length();
         if (len < 15 || len > 34) return false;
 
@@ -149,6 +147,7 @@ public class BankAccountService {
         return true;
     }
 
+    // Nettoie le label
     private String cleanLabel(String label) {
         if (label == null) return null;
         String trimmed = label.trim();
